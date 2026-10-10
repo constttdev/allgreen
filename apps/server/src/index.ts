@@ -1,15 +1,32 @@
-import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
+import { serve } from "@hono/node-server";
+import { Hono } from "hono";
+import pino from "pino";
 
-const app = new Hono()
+const logger = pino({
+  transport: {
+    target: "pino-pretty",
+    options: {
+      colorize: true,
+      translateTime: "SYS:HH:MM:ss",
+      ignore: "pid,hostname",
+    },
+  },
+});
 
+const app = new Hono();
+
+/*
 app.get('/', (c) => {
-  return c.text('Hello Hono!')
+  return c.text('')
 })
+*/
 
-serve({
-  fetch: app.fetch,
-  port: 3000
-}, (info) => {
-  console.log(`Server is running on http://localhost:${info.port}`)
-})
+serve(
+  {
+    fetch: app.fetch,
+    port: 7357,
+  },
+  (info) => {
+    logger.info(`HONO: Running on http://localhost:${info.port}`);
+  },
+);

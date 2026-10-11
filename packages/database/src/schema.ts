@@ -18,7 +18,7 @@ npm run db:miggen
 
 */
 
-export const users = sqliteTable("users", {
+export const userTable = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
@@ -27,7 +27,7 @@ export const users = sqliteTable("users", {
     .default(sql`(unixepoch())`),
 });
 
-export const displays = sqliteTable("displays", {
+export const displayTable = sqliteTable("displays", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   userID: integer("userID").notNull(),
   name: text("name").notNull().unique(),
@@ -37,7 +37,7 @@ export const displays = sqliteTable("displays", {
   // add checks realation
 });
 
-export const checks = sqliteTable("checks", {
+export const checkTable = sqliteTable("checks", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   userID: integer("userID").notNull(),
   name: text("name").notNull().unique(),
@@ -51,7 +51,7 @@ export const checks = sqliteTable("checks", {
     .default(sql`(unixepoch())`),
 });
 
-export const checkLogs = sqliteTable("checkLogs", {
+export const checkLogTable = sqliteTable("checkLogs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   checkID: integer("checkID").notNull(),
   status: integer("status", { mode: "boolean" }).notNull(),
@@ -63,46 +63,58 @@ export const checkLogs = sqliteTable("checkLogs", {
     .default(sql`(unixepoch())`),
 });
 
-export const displayChecks = sqliteTable(
+export const displayCheckTable = sqliteTable(
   "displayChecks",
   {
     displayID: integer("displayID")
       .notNull()
-      .references(() => displays.id, { onDelete: "cascade" }),
+      .references(() => displayTable.id, { onDelete: "cascade" }),
     checkID: integer("checkID")
       .notNull()
-      .references(() => checks.id, { onDelete: "cascade" }),
+      .references(() => checkTable.id, { onDelete: "cascade" }),
   },
   (t) => [primaryKey({ columns: [t.displayID, t.checkID] })],
 );
 
-export const usersRelations = relations(users, ({ many }) => ({
-  displays: many(displays),
-  checks: many(checks),
+export const usersRelations = relations(userTable, ({ many }) => ({
+  displays: many(displayTable),
+  checks: many(checkTable),
 }));
 
-export const displaysRelations = relations(displays, ({ one, many }) => ({
-  user: one(users, { fields: [displays.userID], references: [users.id] }),
-  displayChecks: many(displayChecks),
-}));
-
-export const checksRelations = relations(checks, ({ one, many }) => ({
-  user: one(users, { fields: [checks.userID], references: [users.id] }),
-  logs: many(checkLogs),
-  displayChecks: many(displayChecks),
-}));
-
-export const checkLogsRelations = relations(checkLogs, ({ one }) => ({
-  check: one(checks, { fields: [checkLogs.checkID], references: [checks.id] }),
-}));
-
-export const displayChecksRelations = relations(displayChecks, ({ one }) => ({
-  display: one(displays, {
-    fields: [displayChecks.displayID],
-    references: [displays.id],
+export const displaysRelations = relations(displayTable, ({ one, many }) => ({
+  user: one(userTable, {
+    fields: [displayTable.userID],
+    references: [userTable.id],
   }),
-  check: one(checks, {
-    fields: [displayChecks.checkID],
-    references: [checks.id],
+  displayChecks: many(displayCheckTable),
+}));
+
+export const checksRelations = relations(checkTable, ({ one, many }) => ({
+  user: one(userTable, {
+    fields: [checkTable.userID],
+    references: [userTable.id],
+  }),
+  logs: many(checkLogTable),
+  displayChecks: many(displayCheckTable),
+}));
+
+export const checkLogsRelations = relations(checkLogTable, ({ one }) => ({
+  check: one(checkTable, {
+    fields: [checkLogTable.checkID],
+    references: [checkTable.id],
   }),
 }));
+
+export const displayChecksRelations = relations(
+  displayCheckTable,
+  ({ one }) => ({
+    display: one(displayTable, {
+      fields: [displayCheckTable.displayID],
+      references: [displayTable.id],
+    }),
+    check: one(checkTable, {
+      fields: [displayCheckTable.checkID],
+      references: [checkTable.id],
+    }),
+  }),
+);

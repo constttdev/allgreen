@@ -1,112 +1,102 @@
-import { JWT_ACCESS_SECRET } from "$env/static/private";
-import { db } from "./db";
-import { eq, or } from "drizzle-orm";
-import { userTable } from "./db/schema";
+import { eq, inArray } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify } from "jose";
+import { db } from "../database/src/index.ts";
+import {
+  userTable,
+  displayTable,
+  checkTable,
+  checkLogTable,
+  displayCheckTable,
+} from "../database/src/schema.ts";
 
-export async function createUser(
-  username: string,
-  email: string,
-  password: string,
-) {
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+const maxAge = 60 * 60 * 24 * 7;
+
+export async function createUser(username: string, password: string) {
+  const passwordHash = await bcrypt.hash(password, 12);
   try {
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    const [insertedUser] = await db
+    const [user] = await db
       .insert(userTable)
-      .values({
-        username,
-        email,
-        password: hashedPassword,
-      })
-      .returning();
-
-    const { password: _, ...userWithoutPassword } = insertedUser;
-
-    const token = createJWT(userWithoutPassword);
-
-    return { token };
+      .values({ username, passwordHash })
+      .returning({ id: userTable.id, username: userTable.username });
   } catch (error) {
-    throw error;
+    throw new Error("Error registring user! Please contact a administrator");
   }
+  return user;
 }
 
-export async function loginUser(userIdent: string, password: string) {
-  try {
-    const [user] = await db
-      .select({
-        id: userTable.id,
-        username: userTable.username,
-        email: userTable.email,
-        password: userTable.password,
-      })
-      .from(userTable)
-      .where(
-        or(eq(userTable.username, userIdent), eq(userTable.email, userIdent)),
-      );
+export async function loginUser(username: string, password: string, jar: any) {
+  const [user] = await db
+    .select()
+    .from(userTable)
+    .where(eq(userTable.username, username));
 
-    if (!user) {
-      return { error: "User not found" };
-    }
-
-    const isValid = await bcrypt.compare(password, user.password);
-
-    if (!isValid) {
-      return { error: "Invalid password" };
-    }
-
-    // Generate a JWT excluding the password field
-    const { password: _, ...userWithoutPassword } = user;
-    const token = createJWT(userWithoutPassword);
-
-    return { token };
-  } catch (error) {
-    console.error("Login error:", error);
-    return { error: "An unexpected error occurred during login." };
+  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+    throw new Error("Invalid username or password");
   }
+
+  const token = await new SignJWT({ id: user.id })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("7d")
+    .sign(secret);
+
+  jar.set("session", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge,
+  });
+
+  return { id: user.id, username: user.username };
 }
 
-// Returns user or null to be used in hooks.server.ts
-export async function authenticateUser(authHeader?: string) {
-  if (!authHeader) return null;
-
-  // Expected format: "Bearer <token>"
-  const [scheme, token] = authHeader.split(" ");
-  if (scheme !== "Bearer" || !token) return null;
-
+export async function getUserId(jar: any) {
+  const token = jar.get("session")?.value;
+  if (!token) return null;
   try {
-    const decoded = jwt.verify(token, JWT_ACCESS_SECRET) as
-      | { id: number }
-      | undefined;
-    if (!decoded?.id) return null;
-
-    const [user] = await db
-      .select({
-        id: userTable.id,
-        email: userTable.email,
-        username: userTable.username,
-      })
-      .from(userTable)
-      .where(eq(userTable.id, decoded.id));
-
-    return user;
-  } catch (err) {
+    const { payload } = await jwtVerify(token, secret);
+    return payload.id as number;
+  } catch {
     return null;
   }
 }
 
-interface UserWithoutPass {
-  id: Number;
-  username: String;
-  email: String;
-}
-function createJWT(user: UserWithoutPass) {
-  return jwt.sign(
-    { id: user.id, name: user.username, email: user.email },
-    JWT_ACCESS_SECRET,
-    {
-      expiresIn: "1d",
-    },
-  );
+export async function deleteUser(jar: any) {
+  const id = await getUserId(jar);
+  if (!id) throw new Error("Not logged in");
+
+  const checkIds = (
+    await db
+      .select({ id: checkTable.id })
+      .from(checkTable)
+      .where(eq(checkTable.userID, id))
+  ).map((c) => c.id);
+  const displayIds = (
+    await db
+      .select({ id: displayTable.id })
+      .from(displayTable)
+      .where(eq(displayTable.userID, id))
+  ).map((d) => d.id);
+
+  if (checkIds.length) {
+    await db
+      .delete(checkLogTable)
+      .where(inArray(checkLogTable.checkID, checkIds));
+    await db
+      .delete(displayCheckTable)
+      .where(inArray(displayCheckTable.checkID, checkIds));
+  }
+  if (displayIds.length) {
+    await db
+      .delete(displayCheckTable)
+      .where(inArray(displayCheckTable.displayID, displayIds));
+  }
+
+  await db.delete(checkTable).where(eq(checkTable.userID, id));
+  await db.delete(displayTable).where(eq(displayTable.userID, id));
+  await db.delete(userTable).where(eq(userTable.id, id));
+
+  jar.delete("session");
 }

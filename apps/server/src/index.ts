@@ -1,23 +1,14 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import pino from "pino";
+import { createLogger } from "../../../packages/shared/logger.ts";
 
-const logger = pino({
-  transport: {
-    target: "pino-pretty",
-    options: {
-      colorize: true,
-      translateTime: "SYS:HH:MM:ss",
-      ignore: "pid,hostname",
-    },
-  },
-});
+const logger = createLogger("server");
 
 const app = new Hono();
 
 /*
 app.get('/', (c) => {
-  return c.text('')
+  return c.text('Root route')
 })
 */
 
@@ -27,6 +18,6 @@ serve(
     port: 7357,
   },
   (info) => {
-    logger.info(`HONO: Running on http://localhost:${info.port}`);
+    logger.info(`Running on http://localhost:${info.port}`);
   },
 );

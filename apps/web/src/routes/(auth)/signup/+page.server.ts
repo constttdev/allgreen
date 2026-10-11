@@ -1,31 +1,25 @@
 import { fail, redirect } from '@sveltejs/kit';
-
-export const load = async ({ locals }) => {
-	if (locals.user) {
-		redirect(307, '/dashboard');
-	}
-
-	return { user: locals.user };
-};
+import { createUser } from '../../../../../../packages/shared/userManagement.ts';
 
 export const actions = {
-	login: async ({ request, locals }) => {
+	register: async ({ request }) => {
 		const data = await request.formData();
 		const password = data.get('password');
 		const username = data.get('username');
-		if (!username || !password) {
+
+		if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) {
 			return fail(400, { error: 'Username or password is missing' });
 		}
 
 		try {
-            // try to authentificate
-			
+			await createUser(username, password);
 		} catch (error) {
 			console.log(error);
 			return fail(400, {
-				error: 'Failed to login! Please check that you use the right credentials'
+				error: 'Failed to register! Please contact an administrator'
 			});
-			}
 		}
+
+		redirect(303, '/login'); // or wherever; must be outside the try/catch
 	}
 };

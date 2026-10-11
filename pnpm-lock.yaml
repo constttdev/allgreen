@@ -350,6 +350,15 @@ importers:
         specifier: ^26.6.5
         version: 26.6.5
 
+  packages/shared:
+    dependencies:
+      pino:
+        specifier: ^10.4.0
+        version: 10.4.0
+      pino-pretty:
+        specifier: ^13.2.0
+        version: 13.2.0
+
 packages:
 
   '@cacheable/memory@2.2.0':

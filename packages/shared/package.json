@@ -1,0 +1,13 @@
+{
+  "name": "@allgreen/shared",
+  "version": "0.0.0",
+  "scripts": {},
+  "keywords": [],
+  "author": "constt",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "pino": "^10.4.0",
+    "pino-pretty": "^13.2.0"
+  }
+}

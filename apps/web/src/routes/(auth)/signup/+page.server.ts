@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { createUser, loginUser } from '../../../../../../packages/shared/userManagement.ts';
 
 export const actions = {
-	register: async ({ request, cookies }) => {
+	signup: async ({ request, cookies }) => {
 		const data = await request.formData();
 		const password = data.get('password');
 		const username = data.get('username');
@@ -20,7 +20,5 @@ export const actions = {
 				error: 'Failed to register! Please contact an administrator'
 			});
 		}
-
-		redirect(303, '/login'); // or wherever; must be outside the try/catch
 	}
 };

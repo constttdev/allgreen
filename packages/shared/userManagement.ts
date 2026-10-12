@@ -100,3 +100,6 @@ export async function deleteUser(jar: any) {
 
   jar.delete("session");
 }
+
+// TODO: Write authUser function, add user variable that has all the data of the logged in user.
+// TODO: Fix the loginUser function because it doesnt set the cookies / you cant see the cookies being set in the dev tools so I dont think it will like make the user logged in

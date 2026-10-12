@@ -1,8 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { createUser } from '../../../../../../packages/shared/userManagement.ts';
+import { createUser, loginUser } from '../../../../../../packages/shared/userManagement.ts';
 
 export const actions = {
-	register: async ({ request }) => {
+	register: async ({ request, cookies }) => {
 		const data = await request.formData();
 		const password = data.get('password');
 		const username = data.get('username');
@@ -13,6 +13,7 @@ export const actions = {
 
 		try {
 			await createUser(username, password);
+			await loginUser(username, password, cookies);
 		} catch (error) {
 			console.log(error);
 			return fail(400, {

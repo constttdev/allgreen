@@ -20,10 +20,10 @@ export async function createUser(username: string, password: string) {
       .insert(userTable)
       .values({ username, passwordHash })
       .returning({ id: userTable.id, username: userTable.username });
+    return user;
   } catch (error) {
     throw new Error("Error registring user! Please contact a administrator");
   }
-  return user;
 }
 
 export async function loginUser(username: string, password: string, jar: any) {

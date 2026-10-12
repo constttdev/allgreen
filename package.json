@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "A heartbeat / ping / uptime checker",
   "scripts": {
+    "internal:init": "pnpm internal:initJWTSecret",
     "web:dev": "pnpm --filter ./apps/web dev",
     "web:build": "pnpm --filter ./apps/web build",
     "web:check": "pnpm --filter ./apps/web check",
@@ -14,6 +15,7 @@
     "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push",
     "db:miggen": "pnpm db:generate && pnpm db:migrate",
+    "internal:initJWTSecret": "tsx packages/database/src/jwtSecretManager.ts",
     "server:dev": "tsx watch apps/server/src/index.ts",
     "server:start": "tsx apps/server/src/index.ts",
     "security:scan:dir": "gitleaks dir .",

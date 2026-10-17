@@ -28,3 +28,5 @@ export function initJWTSecret(): void {
     logger.info("JWT Secret is already set!");
   }
 }
+
+// TODO: Remove checking if set and change the name of the command to run it from "initJWTSecret" to "genJWTSecret" in package.json

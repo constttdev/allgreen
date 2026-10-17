@@ -10,7 +10,6 @@ import {
   displayCheckTable,
 } from "../database/src/schema.ts";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 const maxAge = 60 * 60 * 24 * 7;
 
 export async function createUser(username: string, password: string) {
@@ -26,7 +25,12 @@ export async function createUser(username: string, password: string) {
   }
 }
 
-export async function loginUser(username: string, password: string, jar: any) {
+export async function loginUser(
+  username: string,
+  password: string,
+  jar: any,
+  secret: string,
+) {
   const [user] = await db
     .select()
     .from(userTable)
@@ -36,10 +40,13 @@ export async function loginUser(username: string, password: string, jar: any) {
     throw new Error("Invalid username or password");
   }
 
+  if (!secret) throw new Error("JWT secret is required");
+  const key = new TextEncoder().encode(secret);
+
   const token = await new SignJWT({ id: user.id })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
-    .sign(secret);
+    .sign(key);
 
   jar.set("session", token, {
     httpOnly: true,
@@ -52,19 +59,22 @@ export async function loginUser(username: string, password: string, jar: any) {
   return { id: user.id, username: user.username };
 }
 
-export async function getUserId(jar: any) {
+export async function getUserId(jar: any, secret: string) {
   const token = jar.get("session")?.value;
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(
+      token,
+      new TextEncoder().encode(secret),
+    );
     return payload.id as number;
   } catch {
     return null;
   }
 }
 
-export async function deleteUser(jar: any) {
-  const id = await getUserId(jar);
+export async function deleteUser(jar: any, secret: string) {
+  const id = await getUserId(jar, secret);
   if (!id) throw new Error("Not logged in");
 
   const checkIds = (

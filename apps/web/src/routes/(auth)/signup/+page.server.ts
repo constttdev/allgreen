@@ -13,7 +13,7 @@ export const actions = {
 
 		try {
 			await createUser(username, password);
-			await loginUser(username, password, cookies);
+			// await loginUser(username, password, cookies);
 		} catch (error) {
 			console.log(error);
 			return fail(400, {

@@ -22,7 +22,7 @@ export function initJWTSecret(): void {
     logger.info("Generated JWT Secret: " + jwtSecret);
     logger.warn("Don't share it! The JWT secret is used to sign JWTs.");
     logger.info(
-      `If no JWT_SECRET Variable is already in the .env file copy the Secret next to the equals sign else copy this in the file - JWT_SECRET="${jwtSecret}"'`,
+      `If no JWT_SECRET Variable is already in the .env file copy the Secret next to the equals sign else copy this in the file - JWT_SECRET="${jwtSecret}"`,
     );
   } else {
     logger.info("JWT Secret is already set!");

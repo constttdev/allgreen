@@ -1,8 +1,11 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import { loginUser } from '../../../../../../packages/shared/userManagement.ts';
+import { JWT_SECRET } from '$app/env/private';
 
 export const actions = {
 	login: async ({ request, cookies }) => {
+		console.log(`JWT_SECRET: ${JWT_SECRET}`);
+		console.log(`JWT_SECRET_PROCESS: ${process.env.JWT_SECRET}`);
 		const data = await request.formData();
 		const password = data.get('password');
 		const username = data.get('username');
@@ -11,8 +14,14 @@ export const actions = {
 			return fail(400, { error: 'Username or password is missing' });
 		}
 
+		console.log('After check');
+
 		try {
-			await loginUser(username, password, cookies);
+			console.log('Before login function');
+			await loginUser(username, password, cookies, JWT_SECRET);
+			console.log('Before cookie set');
+			cookies.set('loggy', 'true');
+			console.log('After cookie set');
 			// redirect user to dashboard
 		} catch (error) {
 			console.log(error);

@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { createUser, loginUser } from '../../../../../../packages/shared/userManagement.ts';
+import { JWT_SECRET } from '$app/env/private';
 
 export const actions = {
 	signup: async ({ request, cookies }) => {
@@ -13,7 +14,8 @@ export const actions = {
 
 		try {
 			await createUser(username, password);
-			// await loginUser(username, password, cookies);
+			await loginUser(username, password, cookies, JWT_SECRET);
+			redirect(307, '/dashboard');
 		} catch (error) {
 			console.log(error);
 			return fail(400, {

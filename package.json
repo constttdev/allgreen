@@ -15,7 +15,7 @@
     "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push",
     "db:miggen": "pnpm db:generate && pnpm db:migrate",
-    "internal:initJWTSecret": "tsx packages/database/src/jwtSecretManager.ts",
+    "internal:genJWTSecret": "tsx packages/database/src/jwtSecretManager.ts",
     "server:dev": "tsx watch apps/server/src/index.ts",
     "server:start": "tsx apps/server/src/index.ts",
     "security:scan:dir": "gitleaks dir .",

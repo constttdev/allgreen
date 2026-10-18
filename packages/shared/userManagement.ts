@@ -111,5 +111,16 @@ export async function deleteUser(jar: any, secret: string) {
   jar.delete("session");
 }
 
-// TODO: Write authUser function, add user variable that has all the data of the logged in user.
-// TODO: Fix the loginUser function because it doesnt set the cookies / you cant see the cookies being set in the dev tools so I dont think it will like make the user logged in
+export async function getUser(jar: any, secret: string) {
+  const id = await getUserId(jar, secret);
+  if (!id) return null;
+
+  const [user] = await db
+    .select({ id: userTable.id, username: userTable.username })
+    .from(userTable)
+    .where(eq(userTable.id, id));
+
+  return user ?? null;
+}
+
+// TODO: add user variable that has all the data of the logged in user.

@@ -14,12 +14,12 @@ export const actions = {
 
 		try {
 			await loginUser(username, password, cookies, JWT_SECRET);
-			redirect(307, '/dashboard');
 		} catch (error) {
 			console.log(error);
 			return fail(400, {
 				error: 'Failed to login! Maybe you have the wrong credentials?'
 			});
 		}
+		throw redirect(307, '/dashboard');
 	}
 };

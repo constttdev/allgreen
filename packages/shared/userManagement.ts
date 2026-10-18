@@ -59,8 +59,16 @@ export async function loginUser(
   return { id: user.id, username: user.username };
 }
 
+export async function logoutUser(jar: any) {
+  try {
+    await jar.delete("session", { path: "/" });
+  } catch (error) {
+    console.log("Cant logout a not authentificated user.");
+  }
+}
+
 export async function getUserId(jar: any, secret: string) {
-  const token = jar.get("session")?.value;
+  const token = jar.get("session");
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(

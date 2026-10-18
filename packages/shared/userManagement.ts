@@ -122,5 +122,3 @@ export async function getUser(jar: any, secret: string) {
 
   return user ?? null;
 }
-
-// TODO: add user variable that has all the data of the logged in user.

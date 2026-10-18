@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	let { data } = $props();
 </script>
 
@@ -7,3 +8,7 @@
 {:else}
 	<a href="/login">Log in</a>
 {/if}
+
+<form action="?/logout" method="POST" use:enhance>
+	<button type="submit">Logout</button>
+</form>

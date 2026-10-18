@@ -1,7 +1,3 @@
-import { loadEnvFile } from "node:process";
+import { initGenJWTSecret } from "../../shared/variableManager.ts";
 
-loadEnvFile(".env");
-
-import { initJWTSecret } from "../../shared/variableManager.ts";
-
-initJWTSecret();
+initGenJWTSecret();

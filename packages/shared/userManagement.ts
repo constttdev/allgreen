@@ -9,6 +9,7 @@ import {
   checkLogTable,
   displayCheckTable,
 } from "../database/src/schema.ts";
+import { validatePassword } from "./functionManager.ts";
 
 const maxAge = 60 * 60 * 24 * 7;
 
@@ -129,4 +130,43 @@ export async function getUser(jar: any, secret: string) {
     .where(eq(userTable.id, id));
 
   return user ?? null;
+}
+
+export async function changeUserPassword(
+  jar: any,
+  secret: string,
+  password: string,
+  newPassword: string,
+) {
+  const id = await getUserId(jar, secret);
+  if (!id) return null;
+
+  if (!validatePassword(password)) {
+    throw Error("The given password isn't valid!");
+  }
+  if (!validatePassword(newPassword)) {
+    throw Error("The new password isn't valid!");
+  }
+
+  const [user] = await db
+    .select({
+      id: userTable.id,
+      username: userTable.username,
+      passwordHash: userTable.passwordHash,
+    })
+    .from(userTable)
+    .where(eq(userTable.id, id));
+
+  const dbPasswordHash = user.passwordHash;
+
+  const matches = await bcrypt.compare(password, dbPasswordHash);
+  if (!matches) {
+    throw Error("Current Password is incorrect!");
+  }
+
+  const newPasswordHash = await bcrypt.hash(newPassword, 12);
+  await db
+    .update(userTable)
+    .set({ passwordHash: newPasswordHash })
+    .where(eq(userTable.id, user.id));
 }

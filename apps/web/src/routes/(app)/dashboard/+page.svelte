@@ -12,3 +12,9 @@
 <form action="?/logout" method="POST" use:enhance>
 	<button type="submit">Logout</button>
 </form>
+
+<form action="?/changePassword" method="POST">
+	<input id="oldPassword" name="oldPassword" type="text" />
+	<input id="newPassword" name="newPassword" type="text" />
+	<button type="submit">Change Password</button>
+</form>

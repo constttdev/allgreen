@@ -29,7 +29,9 @@ export const userTable = sqliteTable("users", {
 
 export const displayTable = sqliteTable("displays", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  userID: integer("userID").notNull(),
+  userID: integer("userID")
+    .notNull()
+    .references(() => userTable.id, { onDelete: "cascade" }),
   name: text("name").notNull().unique(),
   createdAt: integer("createdAt", { mode: "timestamp" })
     .notNull()
@@ -39,7 +41,9 @@ export const displayTable = sqliteTable("displays", {
 
 export const checkTable = sqliteTable("checks", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  userID: integer("userID").notNull(),
+  userID: integer("userID")
+    .notNull()
+    .references(() => userTable.id, { onDelete: "cascade" }),
   name: text("name").notNull().unique(),
   address: text("address").notNull().unique(),
   type: text("type").notNull(),
